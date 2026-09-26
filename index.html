@@ -126,7 +126,7 @@ footer{padding:40px 0;border-top:1px solid var(--line);color:var(--muted);font-s
     <a href="#opiniones">Opiniones</a><a href="#faq">FAQ</a><a href="#terminos">Términos</a>
   </div>
   <div class="navright" id="navRight">
-    <a class="btn btn-discord" href="https://discord.gg/bytenodes" target="_blank" rel="noopener" title="Discord">
+    <a class="btn btn-discord" href="https://discord.gg/AjJVHdkHh9" target="_blank" rel="noopener" title="Discord">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="#8B96A3"><path d="M20.3 5.4A18 18 0 0 0 16 4l-.3.6a13 13 0 0 1 3.6 1.5c-1.6-.8-3.2-1.2-4.8-1.4a13 13 0 0 0-5 0C8 4.5 6.3 4.9 4.7 5.7A13 13 0 0 1 8.3 4L8 3.4A18 18 0 0 0 3.7 5.4C1.4 9 .8 12.4 1 15.8a18 18 0 0 0 5.5 2.8l.9-1.5a11 11 0 0 1-1.8-.9l.4-.3a13 13 0 0 0 11.9 0l.4.3c-.6.4-1.2.6-1.8.9l.9 1.5a18 18 0 0 0 5.5-2.8c.3-4-.6-7.3-2.6-10.4ZM8.7 14.3c-.9 0-1.6-.8-1.6-1.8s.7-1.8 1.6-1.8 1.7.8 1.6 1.8c0 1-.7 1.8-1.6 1.8Zm6.6 0c-.9 0-1.6-.8-1.6-1.8s.7-1.8 1.6-1.8 1.7.8 1.6 1.8c0 1-.7 1.8-1.6 1.8Z"/></svg>
     </a>
     <button class="btn" id="loginBtn" onclick="openAuth('login')">Iniciar sesión</button>
@@ -284,7 +284,7 @@ footer{padding:40px 0;border-top:1px solid var(--line);color:var(--muted);font-s
 
 <footer class="wrap">
   <div>© 2026 ByteNodes. Todos los derechos reservados.</div>
-  <div><a href="#terminos">Términos</a> · <a href="https://discord.gg/bytenodes" target="_blank" rel="noopener">Discord</a></div>
+  <div><a href="#terminos">Términos</a> · <a href="https://discord.gg/AjJVHdkHh9" target="_blank" rel="noopener">Discord</a></div>
 </footer>
 
 <!-- Auth modal -->
@@ -313,8 +313,21 @@ footer{padding:40px 0;border-top:1px solid var(--line);color:var(--muted);font-s
 </div>
 <div class="toast" id="toast"></div>
 
+<!-- Admin modal -->
+<div class="overlay" id="adminOverlay">
+  <div class="modal" style="max-width:640px">
+    <button class="modal-x" onclick="closeAdmin()">✕</button>
+    <h3>👑 Panel de registrados</h3>
+    <p style="color:var(--muted);font-size:.85rem;margin:4px 0 16px">Usuarios que se registraron en esta página (guardados en este navegador).</p>
+    <div style="max-height:360px;overflow-y:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.85rem" id="adminTable"></table>
+    </div>
+  </div>
+</div>
+
 <script>
 const USERS_KEY='bytenodes_users', SESSION_KEY='bytenodes_session';
+const ADMIN_EMAIL='aaron23nixolas@gmail.com';
 function getUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY))||[]}catch(e){return[]}}
 function saveUsers(u){try{localStorage.setItem(USERS_KEY,JSON.stringify(u))}catch(e){}}
 function getSession(){try{return localStorage.getItem(SESSION_KEY)}catch(e){return null}}
@@ -354,12 +367,15 @@ function doLogin(e){
 }
 function logout(){clearSession();renderAuthUI();showToast('Sesión cerrada')}
 function currentUser(){const email=getSession();if(!email)return null;return getUsers().find(u=>u.email===email)||null}
+const DISCORD_LINK='https://discord.gg/AjJVHdkHh9';
 function choosePlan(plan){
   const user=currentUser();
-  if(!user){openAuth('register');showToast('Creá tu cuenta para elegir un plan');return}
-  const users=getUsers();const idx=users.findIndex(u=>u.email===user.email);
-  users[idx].plan=plan;saveUsers(users);renderAuthUI();
-  showToast('Plan '+plan+' asociado a tu cuenta');
+  if(user){
+    const users=getUsers();const idx=users.findIndex(u=>u.email===user.email);
+    users[idx].plan=plan;saveUsers(users);renderAuthUI();
+  }
+  showToast('Plan '+plan+' · te llevamos a Discord para activarlo');
+  window.open(DISCORD_LINK,'_blank');
 }
 function renderAuthUI(){
   const user=currentUser();
@@ -369,14 +385,30 @@ function renderAuthUI(){
   if(box)box.remove();
   if(user){
     box=document.createElement('div');box.id='navUserBox';
-    box.innerHTML=`<button class="btn" onclick="toggleUserMenu()">Hola, ${user.name.split(' ')[0]}</button>
+    const isAdmin=user.email===ADMIN_EMAIL;
+    box.innerHTML=`<button class="btn" onclick="toggleUserMenu()">Hola, ${user.name.split(' ')[0]}${isAdmin?' 👑':''}</button>
     <div id="userMenu"><div class="um-row" style="color:var(--muted);cursor:default">${user.email}</div>
     <div class="um-row" style="color:var(--muted);cursor:default">Plan: ${user.plan||'sin plan'}</div>
+    ${isAdmin?'<hr><div class="um-row" onclick="openAdmin()">📋 Panel de registrados</div>':''}
     <hr><div class="um-row" onclick="logout()">Cerrar sesión</div></div>`;
     nav.insertBefore(box,nav.querySelector('.btn-primary'));
   }
 }
 function toggleUserMenu(){document.getElementById('userMenu').classList.toggle('open')}
+function openAdmin(){
+  const user=currentUser();
+  if(!user||user.email!==ADMIN_EMAIL){showToast('Solo el admin puede ver esto');return}
+  const users=getUsers();
+  let rows=`<tr style="text-align:left;color:var(--muted);border-bottom:1px solid var(--line)">
+    <th style="padding:8px">Nombre</th><th style="padding:8px">Correo</th><th style="padding:8px">Plan</th></tr>`;
+  if(users.length===0){rows+=`<tr><td colspan="3" style="padding:14px 8px;color:var(--muted)">Todavía no hay registrados.</td></tr>`}
+  users.forEach(u=>{rows+=`<tr style="border-bottom:1px solid var(--line)">
+    <td style="padding:8px">${u.name}</td><td style="padding:8px">${u.email}</td><td style="padding:8px">${u.plan||'—'}</td></tr>`});
+  document.getElementById('adminTable').innerHTML=rows;
+  document.getElementById('adminOverlay').classList.add('open');
+  document.getElementById('userMenu').classList.remove('open');
+}
+function closeAdmin(){document.getElementById('adminOverlay').classList.remove('open')}
 document.addEventListener('click',function(e){
   const box=document.getElementById('navUserBox');
   if(box&&!box.contains(e.target))document.getElementById('userMenu')?.classList.remove('open');
