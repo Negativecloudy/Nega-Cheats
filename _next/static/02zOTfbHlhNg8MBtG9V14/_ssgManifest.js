@@ -1,0 +1,1 @@
+self.__SSG_MANIFEST=new Set(["\u002Fdiscord-bots\u002F[slug]","\u002Fgame-hosting\u002F[game]","\u002Flegal\u002F[doc]","\u002Fvps\u002F[slug]"]);self.__SSG_MANIFEST_CB&&self.__SSG_MANIFEST_CB()
