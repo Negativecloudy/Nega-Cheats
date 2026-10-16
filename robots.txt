@@ -1,7 +1,8 @@
 User-Agent: *
 Allow: /
-Disallow: /dashboard
-Disallow: /admin
-Disallow: /login
+Disallow: /cuenta/
+Disallow: /admin/
+Disallow: /login/
+Disallow: /registro/
 
 Sitemap: https://bytenodes.lat/sitemap.xml
