@@ -1,0 +1,7 @@
+User-Agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /login
+
+Sitemap: https://bytenodes.lat/sitemap.xml
